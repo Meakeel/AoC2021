@@ -1,3 +1,5 @@
+console.time();
+
 let fishs = [];
 
 let lineReader = require('readline').createInterface({
@@ -29,11 +31,6 @@ function ageFish() {
   let babyFish = 0;
 
   for (let i = 0; i < 9; i++) {
-    // if (fishs[i] === 0) {
-    //   continue;
-    // }
-
-    // Move to 8, and move 8 to 7
     if (i == 0) {
       babyFish = fishs[i];
       continue;
@@ -60,6 +57,7 @@ function printResult() {
     count = count + fishs[i];
   }
   console.log(count);
+  console.timeEnd();
 }
 
 lineReader.on('close', function () {
