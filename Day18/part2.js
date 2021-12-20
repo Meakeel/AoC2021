@@ -1,5 +1,6 @@
 let snailFishRows = [];
 let snailFishResult = null;
+let magnitudeResults = [];
 
 function testCases() {
   let testOneResult = "[[[[1,1],[2,2]],[3,3]],[4,4]]";
@@ -159,14 +160,38 @@ function testCases() {
 
 function process() {
   for (let i = 0; i < snailFishRows.length; i++) {
-    if (i == 0) {
-      addSnailFishRows(snailFishRows[i], snailFishRows[i + 1]);
+    for (let j = 0; j < snailFishRows.length; j++) {
+      if (i == j) {
+        continue;
+      }
+
+      addSnailFishRows(snailFishRows[i], snailFishRows[j]);
       reduceSnailFish();
-    } else if (i != snailFishRows.length - 1) {
-      addSnailFishRows(snailFishResult, snailFishRows[i + 1]);
+      let magOne = processMagnitude(snailFishResult);
+      if (!Number.isNaN(magOne)) {
+        magnitudeResults.push(magOne);
+      } else {
+        debugger;
+      }
+
+      addSnailFishRows(snailFishRows[j], snailFishRows[i]);
       reduceSnailFish();
+      let magTwo = processMagnitude(snailFishResult);
+      if (!Number.isNaN(magTwo)) {
+        magnitudeResults.push(magTwo);
+      } else {
+        debugger;
+      }
     }
   }
+
+  console.log(Math.max(...magnitudeResults));
+
+  // for (let i = snailFishRows.length - 1; i < 0; i--) {
+  //   addSnailFishRows(snailFishRows[i], snailFishRows[i - 1]);
+  //   reduceSnailFish();
+  //   magnitudeResults.push(processMagnitude(snailFishResult));
+  // }
 }
 
 function processMagnitude(input) {
@@ -191,12 +216,6 @@ function processMagnitude(input) {
   }
 
   return Number(input);
-  // [[1,2],[[3,4],5]] becomes 143.
-  // [[[[0,7],4],[[7,8],[6,0]]],[8,1]] becomes 1384.
-  // [[[[1,1],[2,2]],[3,3]],[4,4]] becomes 445.
-  // [[[[3,0],[5,3]],[4,4]],[5,5]] becomes 791.
-  // [[[[5,0],[7,4]],[5,5]],[6,6]] becomes 1137.
-  // [[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]] becomes 3488.
 }
 
 function addSnailFishRows(rowOne, rowTwo) {
@@ -369,89 +388,6 @@ function buildNewString(leftResults, rightResults, pairDetails) {
   }
 }
 
-function buildNewStringOld(leftResults, rightResults, pairDetails) {
-  let leftString = null;
-  if (leftResults != null) {
-
-    if (leftResults.startingIndex != leftResults.indexOfStartOfNumber) {
-      debugger;
-
-      // 14 -17
-      // '[[[[4,0],[5,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]'
-      //                ----   
-
-      // '[[[[4,0],[5,0]4,[['
-      let bitBetweenPairAndValue = snailFishResult.slice(pairDetails.startingIndex + pairDetails.pairLength, rightResults.startingIndex + 1);
-      leftString = `${snailFishResult.slice(0, leftResults.indexOfStartOfNumber)}${leftResults.newValue}${snailFishResult.slice(leftResults.indexOfStartOfNumber + leftResults.originalLength, pairDetails.startingIndex)}`
-
-    } else {
-      leftString = `${snailFishResult.slice(0, leftResults.startingIndex)}${leftResults.newValue}${snailFishResult.slice(leftResults.startingIndex + leftResults.originalLength, pairDetails.startingIndex)}`
-    }
-
-  } else {
-    leftString = snailFishResult.slice(0, pairDetails.startingIndex);
-  }
-
-  let middleString = null;
-  if (leftString[leftString.length - 1] == ",") {
-    middleString = "0";
-  } else {
-    middleString = "0,";
-  }
-
-
-  let pair = snailFishResult.slice(pairDetails.startingIndex, pairDetails.startingIndex + pairDetails.pairLength);
-
-  //                        [6,7] remove
-  //                             ]]],[ -- keep
-  //                                  1=new value - swap
-  //                                    ,1]] - keep
-  // '[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]'
-
-  let rightString = null;
-  if (rightResults != null) {
-    if (rightResults.startingIndex != rightResults.indexOfStartOfNumber) {
-      // We don't have anything in the middle ie [[[
-      if (snailFishResult[rightResults.startingIndex] == "[" && rightResults.indexOfStartOfNumber - rightResults.startingIndex == 1) {
-        rightString = `${rightResults.newValue}${snailFishResult.slice(rightResults.indexOfStartOfNumber + rightResults.originalLength)}`;
-      } else {
-        let bitBetweenPairAndValue = snailFishResult.slice(pairDetails.startingIndex + pairDetails.pairLength, rightResults.startingIndex + 1);
-
-        rightString = `${bitBetweenPairAndValue}${rightResults.newValue}${snailFishResult.slice(rightResults.indexOfStartOfNumber + rightResults.originalLength)}`;
-      }
-
-    } else {
-      rightString = `${rightResults.newValue}${snailFishResult.slice(rightResults.startingIndex + rightResults.originalLength)}`
-    }
-
-  } else {
-    rightString = snailFishResult.slice(pairDetails.startingIndex + pairDetails.pairLength);
-  }
-
-  let newString = `${leftString}${middleString}${rightString}`;
-  snailFishResult = newString;
-
-  // console.log(isValid);
-
-  // after explode:  [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
-  // after explode:  [[[[0,7],4],[15,[0,13]]],[1,1]]
-  // after split:    [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
-  // after split:    [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
-  // after explode:  [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
-
-  // if (
-  //   newString == "[[[[0,7],4],[7,[[8,4],9]]],[1,1]]" ||
-  //   newString == "[[[[0,7],4],[15,[0,13]]],[1,1]]" ||
-  //   newString == "[[[[0,7],4],[[7,8],[0,13]]],[1,1]]" ||
-  //   newString == "[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]" ||
-  //   newString == "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
-  // ) {
-  //   console.log("valid");
-  // } else {
-  //   debugger;
-  // }
-}
-
 function split(value, index) {
   let leftString = snailFishResult.slice(0, index);
   let rightString = snailFishResult.slice(index + 2);
@@ -461,29 +397,6 @@ function split(value, index) {
 
   snailFishResult = `${leftString}[${leftValue},${rightValue}]${rightString}`;
 }
-
-// snailFishResult = "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]";
-
-// for (let i = 0; i < 5; i++) {
-//   reduceSnailFish();
-// }
-
-
-
-// // snailFishResult = "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]";
-// snailFishResult = "[[[[0,7],4],[7,[[8,4],9]]],[1,1]]";
-// reduceSnailFish();
-// console.log(snailFishResult);
-
-// after explode:  [[[[0,7],4],[7,[[8,4],9]]],[1,1]]
-// after explode:  [[[[0,7],4],[15,[0,13]]],[1,1]]
-// after split:    [[[[0,7],4],[[7,8],[0,13]]],[1,1]]
-// after split:    [[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]
-// after explode:  [[[[0,7],4],[[7,8],[6,0]]],[8,1]]
-
-// process();
-
-// testCases();
 
 let lineReader = require('readline').createInterface({
   input: require('fs').createReadStream('Day18/input.txt')
@@ -495,5 +408,5 @@ lineReader.on('line', function (line) {
 
 lineReader.on('close', function () {
   process();
-  console.log(`Magnitude: ${processMagnitude(snailFishResult)}`);
+  // console.log(`Magnitude: ${processMagnitude(snailFishResult)}`);
 });
